@@ -2,19 +2,24 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { time } from "console";
 
 interface Props {
-    title: string;
-    description: string;
-    date: string;
-    location: string;
-    image: string;
-    category: "conference" | "hackathon" | "meetup";
-    organizer: string;
-    price: string;
-    time: string;
-    slug: string;
+  title: string;
+  slug: string;
+  description: string;
+  overview: string;
+  image: string;
+  venue: string;
+  location: string;
+  date: string;
+  time: string;
+  mode: string;
+  audience: string;
+  agenda: string[];
+  organizer: string;
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const EventCard = ({
@@ -23,9 +28,15 @@ const EventCard = ({
     date,
     description,
     location,
-    category,
+    overview,
     organizer,
-    price,
+    venue,
+    tags, 
+    mode,
+    audience,
+    agenda,
+    createdAt,
+    updatedAt,
     slug,
     time
 }: Props) => {
