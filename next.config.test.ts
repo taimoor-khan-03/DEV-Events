@@ -2,18 +2,32 @@ import type { NextConfig } from "next";
 import nextConfig from "./next.config";
 
 describe("Next.js PostHog Configuration", () => {
-  it("should correctly route PostHog API requests with rewrite rules", async () => {
-    const rewrites = await nextConfig.rewrites?.();
+  type RewriteItem = { source: string; destination: string };
 
-    expect(rewrites).toBeDefined();
-    expect(Array.isArray(rewrites)).toBe(true);
-    expect(rewrites).toHaveLength(2);
+  const getRewriteList = async (): Promise<RewriteItem[]> => {
+    const rw = await nextConfig.rewrites?.();
+    return Array.isArray(rw)
+      ? (rw as RewriteItem[])
+      : [
+          ...((rw?.beforeFiles ?? []) as RewriteItem[]),
+          ...((rw?.afterFiles ?? []) as RewriteItem[]),
+          ...((rw?.fallback ?? []) as RewriteItem[]),
+        ];
+  };
+
+  it("should correctly route PostHog API requests with rewrite rules", async () => {
+    const rw = await nextConfig.rewrites?.();
+    const list = Array.isArray(rw) ? rw : [];
+
+    expect(rw).toBeDefined();
+    expect(Array.isArray(rw)).toBe(true);
+    expect(list).toHaveLength(2);
   });
 
   it("should route static PostHog assets to us-assets.i.posthog.com", async () => {
-    const rewrites = await nextConfig.rewrites?.();
+    const list = await getRewriteList();
 
-    const staticRewrite = rewrites?.find(
+    const staticRewrite = list.find(
       (rewrite) => rewrite.source === "/ingest/static/:path*"
     );
 
@@ -24,9 +38,9 @@ describe("Next.js PostHog Configuration", () => {
   });
 
   it("should route PostHog API requests to us.i.posthog.com", async () => {
-    const rewrites = await nextConfig.rewrites?.();
+    const list = await getRewriteList();
 
-    const apiRewrite = rewrites?.find(
+    const apiRewrite = list.find(
       (rewrite) => rewrite.source === "/ingest/:path*"
     );
 
@@ -39,17 +53,17 @@ describe("Next.js PostHog Configuration", () => {
   });
 
   it("should have correct rewrite order (static before general)", async () => {
-    const rewrites = await nextConfig.rewrites?.();
+    const list = await getRewriteList();
 
-    expect(rewrites?.[0].source).toBe("/ingest/static/:path*");
-    expect(rewrites?.[1].source).toBe("/ingest/:path*");
+    expect(list[0]?.source).toBe("/ingest/static/:path*");
+    expect(list[1]?.source).toBe("/ingest/:path*");
   });
 
   it("should configure PostHog proxy correctly for client-side tracking", async () => {
-    const rewrites = await nextConfig.rewrites?.();
+    const list = await getRewriteList();
 
     // Verify that all rewrites target PostHog infrastructure
-    rewrites?.forEach((rewrite) => {
+    list.forEach((rewrite) => {
       expect(rewrite.source).toMatch(/^\/ingest/);
       expect(rewrite.destination).toMatch(/posthog\.com/);
     });

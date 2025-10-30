@@ -8,6 +8,10 @@ jest.mock("posthog-js", () => ({
 describe("PostHog Client Initialization", () => {
   const originalEnv = process.env;
 
+  const setEnv = (key: keyof NodeJS.ProcessEnv, value: string) => {
+    (process.env as unknown as Record<string, string | undefined>)[key] = value;
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
@@ -18,8 +22,8 @@ describe("PostHog Client Initialization", () => {
   });
 
   it("should initialize PostHog client with correct configuration parameters", () => {
-    process.env.NEXT_PUBLIC_POSTHOG_KEY = "test-posthog-key";
-    process.env.NODE_ENV = "production";
+    setEnv("NEXT_PUBLIC_POSTHOG_KEY", "test-posthog-key");
+    setEnv("NODE_ENV", "production");
 
     // Re-import to trigger initialization
     jest.isolateModules(() => {
@@ -36,8 +40,8 @@ describe("PostHog Client Initialization", () => {
   });
 
   it("should enable PostHog exception capturing", () => {
-    process.env.NEXT_PUBLIC_POSTHOG_KEY = "test-posthog-key";
-    process.env.NODE_ENV = "production";
+    setEnv("NEXT_PUBLIC_POSTHOG_KEY", "test-posthog-key");
+    setEnv("NODE_ENV", "production");
 
     jest.isolateModules(() => {
       require("./instrumentation-client");
@@ -48,8 +52,8 @@ describe("PostHog Client Initialization", () => {
   });
 
   it("should enable debug mode in development environment", () => {
-    process.env.NEXT_PUBLIC_POSTHOG_KEY = "test-posthog-key";
-    process.env.NODE_ENV = "development";
+    setEnv("NEXT_PUBLIC_POSTHOG_KEY", "test-posthog-key");
+    setEnv("NODE_ENV", "development");
 
     jest.isolateModules(() => {
       require("./instrumentation-client");
@@ -60,8 +64,8 @@ describe("PostHog Client Initialization", () => {
   });
 
   it("should disable debug mode in production environment", () => {
-    process.env.NEXT_PUBLIC_POSTHOG_KEY = "test-posthog-key";
-    process.env.NODE_ENV = "production";
+    setEnv("NEXT_PUBLIC_POSTHOG_KEY", "test-posthog-key");
+    setEnv("NODE_ENV", "production");
 
     jest.isolateModules(() => {
       require("./instrumentation-client");
@@ -80,8 +84,8 @@ describe("PostHog Client Initialization", () => {
 
     testCases.forEach(({ env, expectedDebug }) => {
       jest.clearAllMocks();
-      process.env.NEXT_PUBLIC_POSTHOG_KEY = "test-posthog-key";
-      process.env.NODE_ENV = env;
+      setEnv("NEXT_PUBLIC_POSTHOG_KEY", "test-posthog-key");
+      setEnv("NODE_ENV", env);
 
       jest.isolateModules(() => {
         require("./instrumentation-client");
